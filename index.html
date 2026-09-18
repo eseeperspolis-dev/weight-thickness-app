@@ -1,0 +1,36 @@
+<!doctype html><html lang="fa" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17202a"><link rel="manifest" href="manifest.json"><title>محاسبه وزن و ضخامت</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef1f4;color:#17202a;font-family:Tahoma,Arial,sans-serif}
+main{max-width:540px;margin:auto;padding:14px}.card{background:white;border-radius:20px;padding:18px;margin:10px 0;box-shadow:0 5px 20px #0001}
+h1{text-align:center;font-size:22px;margin:2px 0 4px}.sub{text-align:center;color:#6b7280;font-size:12px;margin:0 0 14px}
+label{font-weight:700;font-size:13px;display:block;margin:11px 0 5px}
+input{width:100%;padding:12px;border:1px solid #ccd2d8;border-radius:11px;font-size:18px;text-align:center;direction:ltr}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}button{border:0;border-radius:11px;padding:13px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{width:100%;margin-top:15px;background:#17202a;color:white}.secondary{background:#e8ecef;color:#17202a}
+.results{margin-top:14px}.result{padding:12px;border:1px solid #e0e4e8;border-radius:12px;margin-top:8px;display:flex;justify-content:space-between}
+.value{font-weight:800;direction:ltr}.history h2{font-size:16px}.item{font-size:12px;border-top:1px solid #eee;padding:9px 0}.empty{color:#777;font-size:12px}
+</style></head><body><main>
+<div class="card"><h1>محاسبه وزن و ضخامت</h1><p class="sub">نسخه موبایل</p>
+<label>عرض (mm)</label><input id="w" type="number" inputmode="decimal">
+<label>طول (mm)</label><input id="l" type="number" inputmode="decimal">
+<label>تعداد شیت</label><input id="c" type="number" inputmode="numeric">
+<label>وزن با پالت (kg)</label><input id="g" type="number" inputmode="decimal">
+<button class="primary" onclick="calc(true)">محاسبه</button>
+<div class="grid" style="margin-top:9px"><button class="secondary" onclick="clearAll()">پاک کردن</button><button class="secondary" onclick="save()">ذخیره محاسبه</button></div>
+<div class="results"><div class="result"><span>وزن خالص</span><span class="value" id="net">—</span></div>
+<div class="result"><span>ضخامت محاسباتی</span><span class="value" id="t">—</span></div></div></div>
+<div class="card history"><h2>آخرین محاسبات</h2><div id="hist" class="empty">هنوز محاسبه‌ای ذخیره نشده است.</div></div>
+</main>
+<script>
+const ids=['w','l','c','g']; const q=id=>Number(document.getElementById(id).value);
+function fmt(x,d=3){return Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:d}):'—'}
+function calc(show=false){let w=q('w'),l=q('l'),c=q('c'),g=q('g');if(!(w>0&&l>0&&c>0&&g>=0)){document.getElementById('net').textContent='—';document.getElementById('t').textContent='—';return null}
+let net=g-(w*l*0.000018),t=net/c/l/w/7.85*1000000;document.getElementById('net').textContent=fmt(net)+' kg';document.getElementById('t').textContent=fmt(t,4)+' mm';return {w,l,c,g,net,t}}
+function clearAll(){ids.forEach(id=>document.getElementById(id).value='');document.getElementById('net').textContent='—';document.getElementById('t').textContent='—'}
+function save(){let r=calc();if(!r)return;let h=JSON.parse(localStorage.getItem('hist')||'[]');h.unshift(r);h=h.slice(0,10);localStorage.setItem('hist',JSON.stringify(h));render()}
+function render(){let h=JSON.parse(localStorage.getItem('hist')||'[]'),el=document.getElementById('hist');if(!h.length){el.className='empty';el.textContent='هنوز محاسبه‌ای ذخیره نشده است.';return}el.className='';el.innerHTML=h.map((x,i)=>`<div class="item">#${i+1} — عرض ${fmt(x.w,2)} | طول ${fmt(x.l,2)} | تعداد ${fmt(x.c,0)} | وزن خالص ${fmt(x.net)} kg | ضخامت ${fmt(x.t,4)} mm</div>`).join('')}
+ids.forEach(id=>document.getElementById(id).addEventListener('input',()=>calc()));render();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
+</script></body></html>
